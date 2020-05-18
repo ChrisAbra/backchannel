@@ -1,0 +1,39 @@
+<template>
+    <h1 style="text-align: center;">🕊️ backchannel 🕵️</h1>
+
+    <div class="intro-text">
+        A group messaging app to set up to easily allow breakaway conversations.
+        Designed as a solution for online games such as Diplomacy to not require
+        sharing contact details between players
+    </div>
+
+    <div>
+        <div class="card">
+            <h2>
+                Create a room:
+            </h2>
+            <div class="new-room button" onclick={newRoom}>
+                + New room
+            </div>
+        </div>
+        <div class="card">
+            <h2>
+                Join an exising room with code:
+            </h2>
+            <form onsubmit={joinRoom}>
+                <input
+                    type="text"
+                    data-id="roomCode"
+                    placeholder={joinPlaceholderText}
+                    onfocus={clearPlaceholder}
+                    onblur={resetPlaceholder}
+                    class="input"
+                />
+            </form>
+            <br />
+            <div class="new-room button" onclick={joinRoom}>
+                Join
+            </div>
+        </div>
+    </div>
+</template>

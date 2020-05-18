@@ -1,0 +1,8 @@
+<template>
+    <template if:true={showHome}>
+        <c-home onjoinattempt={joinAttempt}></c-home>
+    </template>
+    <tempalte if:true={currentRoomCode}>
+        <c-room room-code={currentRoomCode} onleaveroom={leaveRoom}></c-room>
+    </tempalte>
+</template>

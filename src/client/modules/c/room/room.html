@@ -1,0 +1,80 @@
+<template>
+    <template if:true={loadingRoom}>
+        Loading Room...
+    </template>
+    <template if:false={loadingRoom}>
+        <template if:true={roomData}>
+            <div class="header">
+                <div class="title">
+                    <h1>
+                        {roomData.name}
+                    </h1>
+                </div>
+
+                <div class="settings" onclick={toggleOptions}>
+                    <span
+                        >⚙️
+                        <template if:true={user}>
+                            <u>{user.name}</u>
+                        </template>
+                    </span>
+                </div>
+            </div>
+        </template>
+        <!-- options-->
+        <template if:true={showOptions}>
+            <div class="card">
+                <div>
+                    <div style="display: inline-block;">
+                        <h2>Room options</h2>
+                    </div>
+                    <div
+                        style="
+                            cursor: pointer;
+                            float: right;
+                            display: inline-block;
+                            text-align: right;
+                        "
+                    >
+                        <h2 onclick={toggleOptions}>✖</h2>
+                    </div>
+                </div>
+                <div class="button button-warning" onclick={leaveRoom}>
+                    Leave room
+                </div>
+                <template if:true={user}>
+                    <br />
+                    <div class="button button-neutral" onclick={logOut}>
+                        Log out
+                    </div>
+                </template>
+            </div>
+        </template>
+        <!-- No user screen-->
+        <template if:false={user}>
+            <div class="card">
+                <form onsubmit={createUser}>
+                    <h2>
+                        What's your name?
+                    </h2>
+                    <input type="text" data-id="displayName" class="input" />
+                </form>
+                <br />
+                <div class="button" onclick={createUser}>
+                    Join
+                </div>
+            </div>
+        </template>
+        <template if:true={user}>
+            <div class="card chat-container">
+                <div class={navClass}>
+                    <c-nav></c-nav>
+                </div>
+                <div class="border"></div>
+                <div class={chatClass}>
+                    <c-chat></c-chat>
+                </div>
+            </div>
+        </template>
+    </template>
+</template>
