@@ -28,11 +28,6 @@
         "yarn": ">=1.9.4"
     },
     "homepage": "https://github.com/ChrisAbra/backchannel",
-    "husky": {
-        "hooks": {
-            "pre-commit": "lint-staged"
-        }
-    },
     "keywords": [
         "lwc"
     ],
