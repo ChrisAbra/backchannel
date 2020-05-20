@@ -1,3 +1,7 @@
 <template>
-    NAV
+    <template if:true={members}>
+        <template for:each={members} for:item="member">
+            {member.userName}
+        </template>
+    </template>
 </template>

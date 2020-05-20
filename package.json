@@ -8,7 +8,11 @@
         "@salesforce-ux/design-system": "^2.11.9",
         "compression": "^1.7.4",
         "express": "^4.17.1",
-        "helmet": "^3.22.0"
+        "helmet": "^3.22.0",
+        "nedb": "^1.8.0",
+        "nedb-async": "^0.1.3",
+        "nodemon": "^2.0.4",
+        "package.json": "^2.0.1"
     },
     "devDependencies": {
         "eslint": "^7.0.0",
@@ -43,25 +47,29 @@
     },
     "nodemonConfig": {
         "watch": [
-            "src/server/**/*.js"
+            "scripts/server.js",
+            "src/client/**/*"
         ],
-        "ext": "js",
+        "ext": "js html css",
         "ignore": [
             "src/**/*.spec.js",
             "src/**/*.test.js"
         ],
-        "exec": "node ./src/server/api.js"
+        "events": {
+            "start": "npm run build"
+        }
     },
     "repository": "ChrisAbra/backchannel",
     "scripts": {
         "build": "lwc-services build -m production",
+        "dev": "run-s build:development serve:client",
         "build:development": "lwc-services build",
         "lint": "eslint ./src/**/*.js",
         "prettier": "prettier --write \"**/*.{css,html,js,json,md,ts,yaml,yml}\"",
         "prettier:verify": "prettier --list-different \"**/*.{css,html,js,json,md,ts,yaml,yml}\"",
         "serve": "run-p serve:client serve:api",
         "serve:api": "node src/server/api.js",
-        "serve:client": "node scripts/server.js",
+        "serve:client": "nodemon scripts/server.js",
         "test:unit": "lwc-services test:unit",
         "test:unit:coverage": "lwc-services test:unit --coverage",
         "test:unit:debug": "lwc-services test:unit --debug",

@@ -7,15 +7,14 @@
             <div class="header">
                 <div class="title">
                     <h1>
-                        {roomData.name}
+                        {roomData.roomName}
                     </h1>
-                </div>
-
+                </div>  
                 <div class="settings" onclick={toggleOptions}>
                     <span
                         >⚙️
                         <template if:true={user}>
-                            <u>{user.name}</u>
+                            <u>{user.userName}</u> 
                         </template>
                     </span>
                 </div>
@@ -62,13 +61,13 @@
                 <br />
                 <div class="button" onclick={createUser}>
                     Join
-                </div>
+                </div> 
             </div>
         </template>
         <template if:true={user}>
             <div class="card chat-container">
                 <div class={navClass}>
-                    <c-nav></c-nav>
+                    <c-nav members={roomData.members}></c-nav>
                 </div>
                 <div class="border"></div>
                 <div class={chatClass}>

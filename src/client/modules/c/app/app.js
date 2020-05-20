@@ -4,21 +4,32 @@ export default class App extends LightningElement {
     showHome = true;
 
     currentRoomCode;
-    roomData;
+    roomCode;
 
-    connectedCallback() {
-        let roomCode = this.getRoomNameFromURL();
-        if (roomCode) {
-            this.joinRoom(roomCode);
+    async connectedCallback() {
+        let newRoomCode = this.getRoomNameFromURL();
+        if (newRoomCode) {
+            this.joinRoom(newRoomCode);
         }
+        else {
+            this.leaveRoom();
+        }
+        window.onpopstate = () => {
+            this.connectedCallback();
+        };
+
     }
 
     joinRoom(roomCode) {
         this.showHome = false;
+        let roomPath = '/room/' + roomCode;
+        window.history.pushState({}, 'Room: ' + roomCode, roomPath)
+        this.currentRoomCode = '';
         this.currentRoomCode = roomCode;
     }
 
-    leaveRoom(event) {
+    leaveRoom() {
+        window.history.pushState({}, '', '/')
         this.showHome = true;
         this.currentRoomCode = null;
     }
@@ -26,11 +37,13 @@ export default class App extends LightningElement {
     joinAttempt(event) {
         if (event.detail) {
             this.joinRoom(event.detail);
-            //window.location.href = '/' + event.detail;
         }
     }
 
     getRoomNameFromURL() {
-        return 'B877JE8';
-    }
+        if(window.location.pathname.includes('/room/')){
+            return window.location.pathname.split('/')[2];
+        }
+        return null;
+    } 
 }

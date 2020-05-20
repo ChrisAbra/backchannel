@@ -1,4 +1,6 @@
+/* eslint-disable no-alert */
 import { LightningElement, api } from 'lwc';
+import { generateGUID } from 'imports/guid';
 
 export default class Room extends LightningElement {
     @api
@@ -10,17 +12,17 @@ export default class Room extends LightningElement {
 
     roomData;
 
-    chatData;
-
     showOptions = false;
 
     navClass = 'nav hide';
     chatClass = 'active-chat show';
 
     async connectedCallback() {
-        this.user = await this.getUserData();
         this.roomData = await this.getRoomData();
-        this.chatData = await this.getChatData();
+        this.user = await this.getUserData();
+        if(this.user){
+            await this.registerUser();
+        }
         this.loadingRoom = false;
     }
 
@@ -32,19 +34,22 @@ export default class Room extends LightningElement {
         return null;
     }
 
-    leaveRoom(event) {
+    leaveRoom() {
+        // eslint-disable-next-line no-restricted-globals
         if (confirm('Are you sure you want to leave the room')) {
-            const event = new CustomEvent('leaveroom');
-            this.dispatchEvent(event);
+            const e = new CustomEvent('leaveroom');
+            this.dispatchEvent(e);
         }
     }
 
-    logOut(event) {
+    logOut() {
         if (
+            // eslint-disable-next-line no-restricted-globals
             confirm(
                 "Are you sure you want to log out. You won't be able to receive any messages and all current messages will be lost"
             )
         ) {
+            this.showOptions = false;
             this.clearData();
         }
     }
@@ -54,79 +59,65 @@ export default class Room extends LightningElement {
         this.user = null;
     }
 
-    toggleOptions(event) {
+    toggleOptions() {
         this.showOptions = !this.showOptions;
     }
 
     async getRoomData() {
-        let roomData = {
-            name: 'Diplomacy Game',
-            code: this.roomCode,
-            members: [
-                {
-                    id: '1',
-                    name: 'Chris'
-                },
-                {
-                    id: '2',
-                    name: 'Megan'
-                }
-            ]
-        };
-
-        document.title = '🕊️ ' + roomData.name;
-
-        return roomData;
+        const response = await fetch('/api/join?roomCode=' + this.roomCode);
+        let roomData;
+        if(response.ok){
+            roomData = await response.json();
+            console.log(roomData);
+            console.log(roomData.roomName);
+            document.title = '🕊️ ' + roomData.roomName;
+        
+        }
+        else{
+            console.error(response.status);
+        }
+        return roomData;    
     }
 
-    async getChatData() {
-        return {
-            public: [
-                {
-                    messageId: '1',
-                    senderId: '1',
-                    senderName: 'Chris',
-                    message: 'Hi there everyone'
-                },
-                {
-                    messageId: '2',
-                    senderId: '2',
-                    senderName: 'Megan',
-                    message: 'Hi Chris'
-                }
-            ],
-            private: [
-                {
-                    messageId: '2',
-                    participantId: '2',
-                    participantName: 'Megan',
-                    messages: [
-                        {
-                            messageId: '1',
-                            senderId: '1',
-                            senderName: 'Megan',
-                            message: 'Hi new guy'
-                        }
-                    ]
-                }
-            ]
-        };
+
+    async registerUser() {
+        const response = await fetch('/api/register', {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: this.user.userId,
+                userName: this.user.userName,
+                roomCode: this.roomCode
+            }
+            )
+        });
+        if (response.ok) {
+            let roomData = await response.json();
+            this.roomData = roomData;
+        }
+        else {
+            console.error(response.status);
+        }
     }
 
     createUser(event) {
         event.preventDefault();
+
         let displayName = this.template.querySelector('[data-id="displayName"]')
             .value;
 
         if (displayName) {
             console.log(displayName);
             const user = {
-                name: displayName,
-                id: 'a89efna98efnaef'
+                userName: displayName,
+                userId: generateGUID(),
             };
 
             this.user = user;
             localStorage.setItem('user', JSON.stringify(user));
+            this.registerUser();
         }
     }
 }

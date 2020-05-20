@@ -12,7 +12,20 @@
             <h2>
                 Create a room:
             </h2>
-            <div class="new-room button" onclick={newRoom}>
+            <form onsubmit={newRoomEvent}>
+                <input
+                    type="text"
+                    data-id="newRoomName"
+                    data-placeholder="Room name"
+                    placeholder="Room name"
+                    onfocus={clearPlaceholder}
+                    onblur={resetPlaceholder}
+                    class="input"
+                />
+            </form>
+            <br />
+
+            <div class="new-room button" onclick={newRoomEvent}>
                 + New room
             </div>
         </div>
@@ -24,14 +37,15 @@
                 <input
                     type="text"
                     data-id="roomCode"
-                    placeholder={joinPlaceholderText}
+                    placeholder="Enter code here"
+                    data-placeholder="Enter code here"
                     onfocus={clearPlaceholder}
                     onblur={resetPlaceholder}
                     class="input"
                 />
             </form>
             <br />
-            <div class="new-room button" onclick={joinRoom}>
+            <div class="new-room button" onclick={joinRoomEvent}>
                 Join
             </div>
         </div>
