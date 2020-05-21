@@ -4,7 +4,7 @@
     padding: 0px;
     max-width: 1040px;
     display: flex;
-    height: calc(100vh - 110px);
+    height: calc(100vh - 150px);
 }
 
 .nav {
