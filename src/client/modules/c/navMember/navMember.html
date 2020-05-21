@@ -1,0 +1,15 @@
+<template>
+    <div onclick={selectActiveMember}>
+
+        <template if:true={member}>
+            {member.userName}
+            
+            <template if:true={unread}>
+                <span>
+                    {unread}
+                </span>
+            </template>
+        </template>
+    </div>
+
+</template>

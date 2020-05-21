@@ -66,12 +66,20 @@
         </template>
         <template if:true={user}>
             <div class="card chat-container">
-                <div class={navClass}>
-                    <c-nav members={members}></c-nav>
+                <div class={navClass} >
+                    <template if:true={members}>
+                        <template for:each={members} for:item="member">
+                            <div key={member._id} class="member">
+                                <c-nav-member onmemberselect={memberSelect} room-code={roomCode} user={user} socket={socket} member={member} unread={unread}></c-nav-member>
+                            </div>
+                        </template>
+                    </template>
                 </div>
                 <div class="border"></div>
                 <div class={chatClass}>
-                    <c-chat></c-chat>
+                    <template if:true={activeMember}>
+                        <c-chat user={user} socket={socket} member={activeMember} ></c-chat>
+                    </template>
                 </div>
             </div>
         </template>

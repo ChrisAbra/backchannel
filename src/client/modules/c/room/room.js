@@ -15,6 +15,10 @@ export default class Room extends LightningElement {
 
     socket;
 
+    activeMember;
+
+    defaultChatMember;
+
 
     members;
 
@@ -24,6 +28,9 @@ export default class Room extends LightningElement {
     chatClass = 'active-chat show';
 
     async connectedCallback() {
+        if (this.roomCode) {
+            this.defaultChatMember = { userName: 'Orders', _id: this.roomCode }
+        }
         this.roomData = await this.getRoomData();
         this.user = await this.getUserData();
         if (this.user) {
@@ -83,10 +90,55 @@ export default class Room extends LightningElement {
         return roomData;
     }
 
-    listenToRoom(){
-        this.socket.on('members', (msg) => {
-            this.members = msg;
+    listenToRoom() {
+        this.socket.on('members', (members) => {
+            let filteredMembers = members.filter(member => member._id !== this.user.userId);
+            filteredMembers.forEach(member => {
+                if (member._id !== this.defaultChatMember._id) {
+                    let memberIds = [];
+                    memberIds.push(this.user.userId, member._id);
+                    memberIds.sort(); // alphabetically sort to ensure same codes for both pairs
+                    member.chatId = this.roomCode + '-' + memberIds[0] + memberIds[1];
+                }
+            });
+
+            filteredMembers.unshift(this.defaultChatMember)
+            this.members = filteredMembers;
+            let activeMemberId = this.activeMember ? this.activeMember._id: this.defaultChatMember._id;
+            this.setActiveMember(activeMemberId);
         })
+
+        this.socket.on('message', (msg) => {
+            let members = this.members;
+            members.forEach(member => {
+                if (member._id == msg.recipientId) {
+                    if (msg.senderId == this.user.userId) {
+                        msg.from = 'self';
+                        member.posts = member.posts ? member.posts : [];
+                        member.posts.push(msg);
+                    }
+                    else {
+                        msg.from = 'other';
+                        member.posts = member.posts ? member.posts : [];
+                        member.posts.push(msg);
+                    }
+                    console.log(member.posts);
+                    member.unread = member.unread ? member.unread + 1 : 1;
+                }
+            })
+            this.members = null;
+            this.members = members;
+            //this.setActiveMember(this.activeMember._id);
+        })
+    }
+
+    setActiveMember(memberId) {
+        this.members.forEach(member => {
+            if(member._id == memberId){
+                this.activeMember = null;
+                this.activeMember = member;
+            }
+        });
     }
 
 
@@ -102,6 +154,10 @@ export default class Room extends LightningElement {
             socket.emit('register', userData);
             this.listenToRoom();
         })
+    }
+
+    memberSelect(event){
+        this.setActiveMember(event.detail);
     }
 
 

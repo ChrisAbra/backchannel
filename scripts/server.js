@@ -35,8 +35,7 @@ const users = new AsyncNedb(
 
 
 //#region Utilities
-const generateRoomId = () => {
-    let length = 12;
+const generateRandomId = (length) => {
     let result = '';
     let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let charactersLength = characters.length;
@@ -49,6 +48,26 @@ const generateRoomId = () => {
 
 
 //#region Socket.io
+
+
+const forwardMessage = async (msg) => {
+    let sender = await users.asyncFind({_id : msg.senderId});
+    msg.postId = generateRandomId(28);
+    msg.senderName = sender.userName;
+    msg.time = Date.now();
+    if(msg.recipientId.length == 12){ // room code
+        io.to(msg.recipientId).emit('message',msg);
+        return;
+    }
+    let recipient = await users.asyncFind({_id : msg.recipientId});
+    if(recipient){
+
+        io.to(recipient.socketId).emit('message',msg);
+
+    }
+}
+
+
 io.on('connection', (socket) => {
     socket.on('register', async (data) => {
         let user = {
@@ -64,7 +83,12 @@ io.on('connection', (socket) => {
         usersInRoom.forEach(function(member){ delete member.socketId });
         io.to(data.roomCode).emit('members',usersInRoom);
     });
+
+    socket.on('message',async(data) => {
+        forwardMessage(data);
+    })
 });
+
 //#endregion
 
 //#region Logic
@@ -80,7 +104,7 @@ const joinRoom = async (req) => {
 
 const createRoom = async (req) => {
     if (req.body.roomName) {
-        let roomCode = generateRoomId();
+        let roomCode = generateRandomId(12);
 
         let roomData = {
             _id: roomCode,

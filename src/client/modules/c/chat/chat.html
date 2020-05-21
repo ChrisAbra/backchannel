@@ -1,13 +1,25 @@
 <template>
-    <div class="container">
-        <div class="chat-window">
-            window
-        </div>
-        <div class="keyboard">
-            <input type="text" class="input" />
-            <div class="send">
-                Send
+    <template if:true={member}>
+        {member.userName}
+        {member.unread}
+        <div class="container">
+            <div class="chat-window">
+                <template for:each={member.posts} for:item="post">
+                    <div key={post.postId}>
+                        {post.postId} - {post.message}
+                    </div>
+                </template>
+            </div>
+            <div class="keyboard">
+                <form onsubmit={post}>
+                    <input type="text" data-id="message" class="input" />
+
+                </form>
+                <div class="send" onclick={post}>
+                    Send
+                </div>
             </div>
         </div>
-    </div>
+    </template>
+
 </template>

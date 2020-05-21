@@ -8,7 +8,8 @@
 }
 
 .chat-window {
-    height: 100%;
+    height: calc(100% - 70px);
+    overflow:auto;
 }
 
 .keyboard {
@@ -17,16 +18,22 @@
     border-top: 2px solid lightgray;
 }
 
-.keyboard input {
-    resize: none;
-    margin: 10px;
+.keyboard form {
     display: inline-block;
     width: calc(100% - 100px);
+    height:100%;
+    padding:10px;
+}
+
+.keyboard form input {
+    resize: none;
     height: calc(100% - 20px);
+    width:calc(100% - 20px);
     padding: 0px 5px;
     text-align: left;
     font-family: 'Lato', Helvetica, sans-serif;
     font-size: 14px;
+
 }
 
 .send {
