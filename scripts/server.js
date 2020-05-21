@@ -5,9 +5,9 @@ const express = require('express');
 const path = require('path');
 const { AsyncNedb } = require('nedb-async');
 const bodyParser = require('body-parser');
-
 const app = express();
-
+const server = require('http').Server(app);
+const io = require('socket.io')(server);
 
 
 app.use(helmet());
@@ -20,12 +20,19 @@ const PORT = process.env.PORT || 3001;
 const DIST_DIR = './dist';
 const DATABASE_DIR = './data';
 
-const db = new AsyncNedb(
+const rooms = new AsyncNedb(
     {
-        filename: path.resolve(DATABASE_DIR, 'database'),
+        filename: path.resolve(DATABASE_DIR, 'rooms'),
         autoload: true
     }
 );
+const users = new AsyncNedb(
+    {
+        filename: path.resolve(DATABASE_DIR, 'users'),
+        autoload: true
+    }
+);
+
 
 //#region Utilities
 const generateRoomId = () => {
@@ -41,14 +48,31 @@ const generateRoomId = () => {
 //#endregion
 
 
+//#region Socket.io
+io.on('connection', (socket) => {
+    socket.on('register', async (data) => {
+        let user = {
+            _id: data.userId,
+            socketId: socket.id,
+            userName: data.userName,
+            roomCode: data.roomCode,
+        }
+        await users.asyncUpdate({ _id: data.userId }, user, { upsert: true });
 
+        socket.join(data.roomCode);
+        let usersInRoom = await users.asyncFind({roomCode: data.roomCode});
+        usersInRoom.forEach(function(member){ delete member.socketId });
+        io.to(data.roomCode).emit('members',usersInRoom);
+    });
+});
+//#endregion
 
 //#region Logic
 
 const joinRoom = async (req) => {
     let roomData;
     if (req.query.roomCode) {
-        roomData = await db.asyncFindOne({_id: req.query.roomCode});
+        roomData = await rooms.asyncFindOne({ _id: req.query.roomCode });
     }
     return roomData;
 }
@@ -61,32 +85,10 @@ const createRoom = async (req) => {
         let roomData = {
             _id: roomCode,
             roomName: req.body.roomName,
-            roomCode: roomCode,
-            members : []
+            roomCode: roomCode
         }
-        db.asyncInsert(roomData);
+        await rooms.asyncInsert(roomData);
 
-        return roomData;
-    }
-    return null;
-
-}
-
-
-const registerUser = async(req) => {
-    if(req.body.userId && req.body.userName && req.body.roomCode){
-        let userId = req.body.userId;
-        let userName = req.body.userName;
-        let roomCode = req.body.roomCode;
-        let roomData = await db.asyncFindOne({_id: roomCode});
-        if((roomData.members.filter(member => member.userId == userId)).length == 0){ // if the member isnt already registered
-            roomData.members.push({
-                userName:userName,
-                userId: userId
-            })
-            roomData = await db.asyncUpdate({_id: roomData._id},roomData);
-
-        }
         return roomData;
     }
     return null;
@@ -112,18 +114,14 @@ app.post('/api/create', async (req, res) => {
     res.json(roomData);
 });
 
-app.post('/api/register', async (req, res) => {
-    let roomData = await registerUser(req);
-    res.json(roomData);
-});
-
-app.listen(PORT, () =>
-    console.log(`✅  Server started: http://${HOST}:${PORT}`)
-);
-
 app.get('*', (req, res) => {
     res.sendFile(path.resolve(DIST_DIR, 'index.html'));
 });
+
+
+server.listen(PORT, () =>
+    console.log(`✅  Server started: http://${HOST}:${PORT}`)
+);
 
 
 //#endregion 

@@ -21,11 +21,11 @@ export default class App extends LightningElement {
     }
 
     joinRoom(roomCode) {
+        this.currentRoomCode = '';
+        this.currentRoomCode = roomCode;
         this.showHome = false;
         let roomPath = '/room/' + roomCode;
         window.history.pushState({}, 'Room: ' + roomCode, roomPath)
-        this.currentRoomCode = '';
-        this.currentRoomCode = roomCode;
     }
 
     leaveRoom() {

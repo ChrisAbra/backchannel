@@ -1,6 +1,7 @@
 /* eslint-disable no-alert */
 import { LightningElement, api } from 'lwc';
 import { generateGUID } from 'imports/guid';
+import io from 'imports/io';
 
 export default class Room extends LightningElement {
     @api
@@ -12,6 +13,11 @@ export default class Room extends LightningElement {
 
     roomData;
 
+    socket;
+
+
+    members;
+
     showOptions = false;
 
     navClass = 'nav hide';
@@ -20,7 +26,7 @@ export default class Room extends LightningElement {
     async connectedCallback() {
         this.roomData = await this.getRoomData();
         this.user = await this.getUserData();
-        if(this.user){
+        if (this.user) {
             await this.registerUser();
         }
         this.loadingRoom = false;
@@ -66,41 +72,38 @@ export default class Room extends LightningElement {
     async getRoomData() {
         const response = await fetch('/api/join?roomCode=' + this.roomCode);
         let roomData;
-        if(response.ok){
+        if (response.ok) {
             roomData = await response.json();
-            console.log(roomData);
-            console.log(roomData.roomName);
             document.title = '🕊️ ' + roomData.roomName;
-        
+            this.roomData = null;
+            this.roomData = roomData;
+            return roomData;
         }
-        else{
-            console.error(response.status);
-        }
-        return roomData;    
+        console.error(response.status);
+        return roomData;
+    }
+
+    listenToRoom(){
+        this.socket.on('members', (msg) => {
+            this.members = msg;
+        })
     }
 
 
     async registerUser() {
-        const response = await fetch('/api/register', {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                userId: this.user.userId,
-                userName: this.user.userName,
-                roomCode: this.roomCode
-            }
-            )
-        });
-        if (response.ok) {
-            let roomData = await response.json();
-            this.roomData = roomData;
-        }
-        else {
-            console.error(response.status);
-        }
+        let userData = {
+            userId: this.user.userId,
+            userName: this.user.userName,
+            roomCode: this.roomCode
+        };
+        let socket = io.connect(window.location.origin);
+        socket.on('connect', () => {
+            this.socket = socket;
+            socket.emit('register', userData);
+            this.listenToRoom();
+        })
     }
+
 
     createUser(event) {
         event.preventDefault();

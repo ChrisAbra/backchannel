@@ -29,8 +29,9 @@ export default class Home extends LightningElement {
             body: JSON.stringify({roomName: roomName})
         });
         if (response.ok) {
-            let roomCode = await response.json();
-            this.joinRoom(roomCode.roomCode)
+            let roomData = await response.json();
+            this.joinRoom(roomData.roomCode)
+            
         }
         else {
             console.error(response.status);
