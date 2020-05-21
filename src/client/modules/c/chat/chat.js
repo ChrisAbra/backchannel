@@ -7,10 +7,13 @@ export default class Chat extends LightningElement {
     user;
     @api
     socket;
+    @api
+    lastPostId;
 
     renderedCallback(){
-        console.log('chat rendered');
-        console.log(this.member);
+        this.template.querySelector('[data-id="message"]').focus();
+        const event = new CustomEvent('messagesread', { detail: this.member._id });
+        this.dispatchEvent(event);
     }
 
     post(event){

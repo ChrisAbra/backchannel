@@ -2,13 +2,27 @@
     <div onclick={selectActiveMember}>
 
         <template if:true={member}>
-            {member.userName}
-            
-            <template if:true={unread}>
-                <span>
-                    {unread}
+            <div class="member-details half">
+                <span class="member-name">
+                    {member.userName}
                 </span>
-            </template>
+                <template if:true={lastPostId}>
+                    <template if:true={unread}>
+                        <span class="unread">
+                            {unread}
+                        </span>
+                    </template>
+                </template>
+
+            </div>
+            <div class="member-message half">
+                <template if:true={lastMessage}>
+                    <span class="last-message">
+                        "{lastMessage}"
+                    </span>
+                </template>
+
+            </div>
         </template>
     </div>
 

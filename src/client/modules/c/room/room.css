@@ -14,11 +14,8 @@
 
 .member {
 	border-bottom:2px solid lightgray;
-	width:calc(100% - 20px);
-	height:30px;
-	padding:10px;
+	width:calc(100%);
 	transition:all 0.1s ease-in-out
-
 }
 
 .member:hover {

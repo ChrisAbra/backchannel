@@ -70,7 +70,7 @@
                     <template if:true={members}>
                         <template for:each={members} for:item="member">
                             <div key={member._id} class="member">
-                                <c-nav-member onmemberselect={memberSelect} room-code={roomCode} user={user} socket={socket} member={member} unread={unread}></c-nav-member>
+                                <c-nav-member onmemberselect={memberSelect} last-post-id={lastPostId} member={member} unread={member.unread}></c-nav-member>
                             </div>
                         </template>
                     </template>
@@ -78,7 +78,7 @@
                 <div class="border"></div>
                 <div class={chatClass}>
                     <template if:true={activeMember}>
-                        <c-chat user={user} socket={socket} member={activeMember} ></c-chat>
+                        <c-chat user={user} socket={socket} member={activeMember} last-post-id={lastPostId} onmessagesread={messagesRead}></c-chat>
                     </template>
                 </div>
             </div>

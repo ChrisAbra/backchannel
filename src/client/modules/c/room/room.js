@@ -19,6 +19,8 @@ export default class Room extends LightningElement {
 
     defaultChatMember;
 
+    lastPostId;
+
 
     members;
 
@@ -28,10 +30,11 @@ export default class Room extends LightningElement {
     chatClass = 'active-chat show';
 
     async connectedCallback() {
-        if (this.roomCode) {
-            this.defaultChatMember = { userName: 'Orders', _id: this.roomCode }
-        }
         this.roomData = await this.getRoomData();
+        if (this.roomCode) {
+            this.defaultChatMember = { userName: 'Everyone', _id: this.roomCode }
+        }
+
         this.user = await this.getUserData();
         if (this.user) {
             await this.registerUser();
@@ -62,6 +65,7 @@ export default class Room extends LightningElement {
                 "Are you sure you want to log out. You won't be able to receive any messages and all current messages will be lost"
             )
         ) {
+            this.socket.emit('logout',{userId: this.user.userId, roomCode:this.roomCodey});
             this.showOptions = false;
             this.clearData();
         }
@@ -104,37 +108,85 @@ export default class Room extends LightningElement {
 
             filteredMembers.unshift(this.defaultChatMember)
             this.members = filteredMembers;
-            let activeMemberId = this.activeMember ? this.activeMember._id: this.defaultChatMember._id;
+            let activeMemberId = this.activeMember ? this.activeMember._id : this.defaultChatMember._id;
             this.setActiveMember(activeMemberId);
         })
 
         this.socket.on('message', (msg) => {
-            let members = this.members;
-            members.forEach(member => {
-                if (member._id == msg.recipientId) {
-                    if (msg.senderId == this.user.userId) {
-                        msg.from = 'self';
-                        member.posts = member.posts ? member.posts : [];
-                        member.posts.push(msg);
-                    }
-                    else {
-                        msg.from = 'other';
-                        member.posts = member.posts ? member.posts : [];
-                        member.posts.push(msg);
-                    }
-                    console.log(member.posts);
-                    member.unread = member.unread ? member.unread + 1 : 1;
-                }
-            })
-            this.members = null;
-            this.members = members;
-            //this.setActiveMember(this.activeMember._id);
+            this.newMessage(msg);
         })
     }
 
+    newMessage(msg) {
+        let members = this.members;
+        this.lastPostId = msg.postId;
+        members.forEach(member => {
+            if (member._id == msg.recipientId) {
+                if (msg.senderId == this.user.userId) { // own posts
+                    msg.from = 'self';
+                    msg.showSender = false;
+                    member.posts = member.posts ? member.posts : [];
+                    member.posts.push(msg);
+                }
+                else if (member._id == msg.recipientId) { // room post
+                    msg.from = 'other';
+                    if (member.posts) {
+                        console.log(member.posts[member.posts.length - 1].senderId);
+                        console.log(msg.senderId);
+                        if (member.posts[member.posts.length - 1].senderId != msg.senderId) {
+                            msg.showSender = true; // if this sender is different from the last sender
+                        }
+                    }
+                    else {
+                        msg.showSender = true
+                        member.posts = [];
+                    }
+                    member.unread = member.unread ? member.unread + 1 : 1;
+                    member.posts.push(msg);
+
+                }
+            }
+            else if (member._id == msg.senderId && msg.recipientId.length > 12) { // chat post
+                msg.from = 'other';
+                if (member.posts) {
+                    if (member.posts[member.posts.length - 1].senderId != msg.senderId) {
+                        msg.showSender = true; // if this sender is different from the last sender
+                    }
+                }
+                else {
+                    msg.showSender = true
+                    member.posts = [];
+                }
+                member.unread = member.unread ? member.unread + 1 : 1;
+                member.posts.push(msg);
+            }
+        }
+
+        )
+        this.members = null;
+        this.members = members;
+
+    }
+
+    messagesRead(event){
+        console.log('message read');
+        console.log(event.detail);
+        let memberId = event.detail;
+        let members = this.members;
+        members.forEach(member => {
+            if(member._id == memberId){
+                console.log('clear unread');
+                member.unread = 0;
+            }
+        })
+        this.members = members;
+        this.setActiveMember(memberId);
+    }
+
+
     setActiveMember(memberId) {
         this.members.forEach(member => {
-            if(member._id == memberId){
+            if (member._id == memberId) {
                 this.activeMember = null;
                 this.activeMember = member;
             }
@@ -156,7 +208,7 @@ export default class Room extends LightningElement {
         })
     }
 
-    memberSelect(event){
+    memberSelect(event) {
         this.setActiveMember(event.detail);
     }
 

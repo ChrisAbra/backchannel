@@ -3,31 +3,25 @@ import { LightningElement, api } from 'lwc';
 export default class NavMember extends LightningElement {
 	@api 
 	member
-	@api
-	socket;
-	@api
-	user;
 
 	@api
-	roomCode;
-
+	lastPostId;
 	@api
 	unread;
 
-	@api
-	chatId;
+	lastMessage;
 
 
 	member;
 
 
 	renderedCallback(){
-		console.log('nav member connected');
-		console.log(this.member.unread);
+		if(this.member && this.member.posts){
+			this.lastMessage = this.member.posts[this.member.posts.length -1].message;
+		}
 	}
 
 	selectActiveMember(){
-		console.log('fire memberselect');
         const event = new CustomEvent('memberselect', { detail: this.member._id });
         this.dispatchEvent(event);
 	}

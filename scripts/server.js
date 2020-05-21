@@ -51,19 +51,20 @@ const generateRandomId = (length) => {
 
 
 const forwardMessage = async (msg) => {
-    let sender = await users.asyncFind({_id : msg.senderId});
+    let sender = await users.asyncFindOne({_id : msg.senderId});
     msg.postId = generateRandomId(28);
     msg.senderName = sender.userName;
     msg.time = Date.now();
+    console.log(msg);
     if(msg.recipientId.length == 12){ // room code
         io.to(msg.recipientId).emit('message',msg);
         return;
     }
-    let recipient = await users.asyncFind({_id : msg.recipientId});
+    let recipient = await users.asyncFindOne({_id : msg.recipientId});
     if(recipient){
-
+        console.log(recipient.socketId);
         io.to(recipient.socketId).emit('message',msg);
-
+        io.to(sender.socketId).emit('message',msg);
     }
 }
 
@@ -79,15 +80,27 @@ io.on('connection', (socket) => {
         await users.asyncUpdate({ _id: data.userId }, user, { upsert: true });
 
         socket.join(data.roomCode);
-        let usersInRoom = await users.asyncFind({roomCode: data.roomCode});
-        usersInRoom.forEach(function(member){ delete member.socketId });
-        io.to(data.roomCode).emit('members',usersInRoom);
+        broadcastMembersToRoom(data.roomCode);
     });
 
     socket.on('message',async(data) => {
         forwardMessage(data);
     })
+
+    socket.on('logout', async (data) => {
+        await users.asyncRemove({_id: data.userId});
+        await broadcastMembersToRoom(data.roomCode);
+    })
+
 });
+
+
+async function broadcastMembersToRoom(roomCode){
+    let usersInRoom = await users.asyncFind({roomCode: roomCode});
+    usersInRoom.forEach(function(member){ delete member.socketId });
+    io.to(roomCode).emit('members',usersInRoom);
+
+}
 
 //#endregion
 
