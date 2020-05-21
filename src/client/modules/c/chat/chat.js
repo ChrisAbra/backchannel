@@ -23,6 +23,9 @@ export default class Chat extends LightningElement {
         console.log(this.member._id);
         event.preventDefault();
         let message = this.template.querySelector('[data-id="message"]').value;
+        if(!message){
+            return;
+        }
         this.template.querySelector('[data-id="message"]').value = null;
         let payload = {
             senderId: this.user.userId,
