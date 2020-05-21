@@ -13,14 +13,14 @@
 }
 
 .member {
-	border-bottom:2px solid lightgray;
-	width:calc(100%);
-	transition:all 0.1s ease-in-out
+    border-bottom: 2px solid lightgray;
+    width: calc(100%);
+    transition: all 0.1s ease-in-out
 }
 
 .member:hover {
-	background:lightgray;
-	cursor:pointer;
+    background: lightgray;
+    cursor: pointer;
 }
 
 .border {
@@ -47,19 +47,60 @@
     white-space: nowrap;
     text-overflow: ellipsis;
 }
+
 .settings {
     padding: 10px;
     width: 30%;
     text-align: right;
     user-select: none;
 }
+
 .settings span {
     cursor: pointer;
 }
+
+
+.nav-button {
+    display: none;
+    position:relative;
+}
+
+.nav-button img {
+    padding-right: 20px;
+}
+
+.total-unread {
+    position:absolute;
+    top:0px;
+    right:10px;
+
+}
+.total-unread span {
+	float: right;
+	background: lightseagreen;
+	color: white;
+	font-weight: bold;
+	padding: 4px 8px;
+    border-radius: 100%;
+    font-size:11px;
+}
+
 @media only screen and (max-width: 600px) {
+
+    .room-name {
+        display: inline-block;
+        position: absolute;
+        top: 10px;
+    }
+
+    .nav-button {
+        display: inline-block;
+    }
+
     .nav.show {
         width: 100%;
     }
+
     .nav.hide {
         display: none;
     }

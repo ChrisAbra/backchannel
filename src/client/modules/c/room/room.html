@@ -7,14 +7,25 @@
             <div class="header">
                 <div class="title">
                     <h1>
-                        {roomData.roomName}
+                        <div class="nav-button" onclick={openNav}>
+                            <img src="/resources/menuicon.png" width="25" alt="">
+                            <template if:true={unreadMessages}>
+                                <div class="total-unread">
+                                    <span>{unreadMessages}</span>
+                                </div>
+
+                            </template>
+                        </div>
+                        <div class="room-name">
+                            {roomData.roomName}
+
+                        </div>
                     </h1>
-                </div>  
+                </div>
                 <div class="settings" onclick={toggleOptions}>
-                    <span
-                        >⚙️
+                    <span>⚙️
                         <template if:true={user}>
-                            <u>{user.userName}</u> 
+                            <u>{user.userName}</u>
                         </template>
                     </span>
                 </div>
@@ -27,20 +38,22 @@
                     <div style="display: inline-block;">
                         <h2>Room options</h2>
                     </div>
-                    <div
-                        style="
+                    <div style="
                             cursor: pointer;
                             float: right;
                             display: inline-block;
                             text-align: right;
-                        "
-                    >
+                        ">
                         <h2 onclick={toggleOptions}>✖</h2>
                     </div>
                 </div>
                 <div class="button button-warning" onclick={leaveRoom}>
                     Leave room
                 </div>
+                <div class="button button-neutral" onclick={enableSound}>
+                    Enable Sound
+                </div>
+
                 <template if:true={user}>
                     <br />
                     <div class="button button-neutral" onclick={logOut}>
@@ -61,16 +74,17 @@
                 <br />
                 <div class="button" onclick={createUser}>
                     Join
-                </div> 
+                </div>
             </div>
         </template>
         <template if:true={user}>
             <div class="card chat-container">
-                <div class={navClass} >
+                <div class={navClass}>
                     <template if:true={members}>
                         <template for:each={members} for:item="member">
                             <div key={member._id} class="member">
-                                <c-nav-member onmemberselect={memberSelect} last-post-id={lastPostId} member={member} unread={member.unread}></c-nav-member>
+                                <c-nav-member onmemberselect={memberSelect} last-post-id={lastPostId} member={member}
+                                    unread={member.unread}></c-nav-member>
                             </div>
                         </template>
                     </template>
@@ -78,7 +92,8 @@
                 <div class="border"></div>
                 <div class={chatClass}>
                     <template if:true={activeMember}>
-                        <c-chat user={user} socket={socket} member={activeMember} last-post-id={lastPostId} onmessagesread={messagesRead}></c-chat>
+                        <c-chat user={user} socket={socket} member={activeMember} last-post-id={lastPostId}
+                            onmessagesread={messagesRead}></c-chat>
                     </template>
                 </div>
             </div>

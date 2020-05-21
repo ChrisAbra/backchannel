@@ -1,6 +1,7 @@
 /* eslint-disable no-alert */
 import { LightningElement, api } from 'lwc';
 import { generateGUID } from 'imports/guid';
+import { playNotification } from 'imports/sound';
 import io from 'imports/io';
 
 export default class Room extends LightningElement {
@@ -21,15 +22,17 @@ export default class Room extends LightningElement {
 
     lastPostId;
 
-
     members;
 
     showOptions = false;
+
+    unreadMessages = 0;
 
     navClass = 'nav hide';
     chatClass = 'active-chat show';
 
     async connectedCallback() {
+
         this.roomData = await this.getRoomData();
         if (this.roomCode) {
             this.defaultChatMember = { userName: 'Everyone', _id: this.roomCode }
@@ -56,6 +59,17 @@ export default class Room extends LightningElement {
             const e = new CustomEvent('leaveroom');
             this.dispatchEvent(e);
         }
+    }
+
+    openNav(){
+        this.navClass = 'nav show';
+        this.chatClass = 'active-chat hide';
+    }
+
+    closeNav(){
+        this.navClass = 'nav hide';
+        this.chatClass = 'active-chat show';
+
     }
 
     logOut() {
@@ -117,9 +131,10 @@ export default class Room extends LightningElement {
         })
     }
 
-    newMessage(msg) {
+    async newMessage(msg) {
         let members = this.members;
         this.lastPostId = msg.postId;
+        let unreadMessages = this.unreadMessages;
         members.forEach(member => {
             if (member._id == msg.recipientId) {
                 if (msg.senderId == this.user.userId) { // own posts
@@ -131,8 +146,6 @@ export default class Room extends LightningElement {
                 else if (member._id == msg.recipientId) { // room post
                     msg.from = 'other';
                     if (member.posts) {
-                        console.log(member.posts[member.posts.length - 1].senderId);
-                        console.log(msg.senderId);
                         if (member.posts[member.posts.length - 1].senderId != msg.senderId) {
                             msg.showSender = true; // if this sender is different from the last sender
                         }
@@ -142,6 +155,7 @@ export default class Room extends LightningElement {
                         member.posts = [];
                     }
                     member.unread = member.unread ? member.unread + 1 : 1;
+                    unreadMessages++;
                     member.posts.push(msg);
 
                 }
@@ -158,27 +172,32 @@ export default class Room extends LightningElement {
                     member.posts = [];
                 }
                 member.unread = member.unread ? member.unread + 1 : 1;
+                unreadMessages++;
                 member.posts.push(msg);
             }
+        });
+        if(unreadMessages != this.unreadMessages){
+            playNotification();
         }
-
-        )
+        this.unreadMessages = unreadMessages;
         this.members = null;
         this.members = members;
 
     }
 
     messagesRead(event){
-        console.log('message read');
-        console.log(event.detail);
         let memberId = event.detail;
         let members = this.members;
+        let unreadMessages = this.unreadMessages
         members.forEach(member => {
             if(member._id == memberId){
-                console.log('clear unread');
+                if(member.unread){
+                    unreadMessages = unreadMessages - member.unread;
+                }
                 member.unread = 0;
             }
         })
+        this.unreadMessages = unreadMessages;
         this.members = members;
         this.setActiveMember(memberId);
     }
@@ -189,6 +208,7 @@ export default class Room extends LightningElement {
             if (member._id == memberId) {
                 this.activeMember = null;
                 this.activeMember = member;
+                this.closeNav();
             }
         });
     }
@@ -220,7 +240,6 @@ export default class Room extends LightningElement {
             .value;
 
         if (displayName) {
-            console.log(displayName);
             const user = {
                 userName: displayName,
                 userId: generateGUID(),

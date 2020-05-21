@@ -11,7 +11,10 @@ export default class Chat extends LightningElement {
     lastPostId;
 
     renderedCallback(){
+        console.log('chat rendered');
         this.template.querySelector('[data-id="message"]').focus();
+        let chatWindow = this.template.querySelector('.chat-window');
+        chatWindow.scrollTop = chatWindow.scrollHeight;
         const event = new CustomEvent('messagesread', { detail: this.member._id });
         this.dispatchEvent(event);
     }
