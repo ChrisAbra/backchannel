@@ -8,8 +8,8 @@ logs
 /lib
 
 # Standard dist folder
-dist
-data 
+/dist
+/data 
 
 # Tooling files
 node_modules
