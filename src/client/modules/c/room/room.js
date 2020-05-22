@@ -19,8 +19,10 @@ export default class Room extends LightningElement {
     activeMember;
 
     defaultChatMember;
+    ordersChatMember;
 
     lastPostId;
+    processedPosts = [];
 
     members;
 
@@ -35,7 +37,8 @@ export default class Room extends LightningElement {
 
         this.roomData = await this.getRoomData();
         if (this.roomCode) {
-            this.defaultChatMember = { userName: 'Everyone', _id: this.roomCode }
+            this.defaultChatMember = { userName: 'Everyone', _id: this.roomCode, type: 'public' }
+            this.ordersChatMember = { userName: 'Orders', _id: this.roomCode + '-orders', type: 'orders' }
         }
 
         this.user = await this.getUserData();
@@ -61,12 +64,12 @@ export default class Room extends LightningElement {
         }
     }
 
-    openNav(){
+    openNav() {
         this.navClass = 'nav show';
         this.chatClass = 'active-chat hide';
     }
 
-    closeNav(){
+    closeNav() {
         this.navClass = 'nav hide';
         this.chatClass = 'active-chat show';
 
@@ -79,7 +82,7 @@ export default class Room extends LightningElement {
                 "Are you sure you want to log out. You won't be able to receive any messages and all current messages will be lost"
             )
         ) {
-            this.socket.emit('logout',{userId: this.user.userId, roomCode:this.roomCodey});
+            this.socket.emit('logout', { userId: this.user.userId, roomCode: this.roomCodey });
             this.showOptions = false;
             this.clearData();
         }
@@ -111,39 +114,37 @@ export default class Room extends LightningElement {
     listenToRoom() {
         this.socket.on('members', (members) => {
             let filteredMembers = members.filter(member => member._id !== this.user.userId);
-            filteredMembers.forEach(member => {
-                if (member._id !== this.defaultChatMember._id) {
-                    let memberIds = [];
-                    memberIds.push(this.user.userId, member._id);
-                    memberIds.sort(); // alphabetically sort to ensure same codes for both pairs
-                    member.chatId = this.roomCode + '-' + memberIds[0] + memberIds[1];
-                }
-            });
-
+            filteredMembers.unshift(this.ordersChatMember);
             filteredMembers.unshift(this.defaultChatMember)
             this.members = filteredMembers;
             let activeMemberId = this.activeMember ? this.activeMember._id : this.defaultChatMember._id;
             this.setActiveMember(activeMemberId);
-        })
+        });
 
         this.socket.on('message', (msg) => {
-            this.newMessage(msg);
-        })
+            if (!this.processedPosts.includes(msg.postId)) {
+                this.processedPosts.push(msg.postId);
+                this.newMessage(msg);
+            }
+        });
+
     }
 
     async newMessage(msg) {
         let members = this.members;
         this.lastPostId = msg.postId;
         let unreadMessages = this.unreadMessages;
+
         members.forEach(member => {
-            if (member._id == msg.recipientId) {
+
+            if (member._id == msg.recipientId && member.type == msg.type) {
                 if (msg.senderId == this.user.userId) { // own posts
                     msg.from = 'self';
                     msg.showSender = false;
                     member.posts = member.posts ? member.posts : [];
                     member.posts.push(msg);
                 }
-                else if (member._id == msg.recipientId) { // room post
+                else { // room post
                     msg.from = 'other';
                     if (member.posts) {
                         if (member.posts[member.posts.length - 1].senderId != msg.senderId) {
@@ -157,10 +158,9 @@ export default class Room extends LightningElement {
                     member.unread = member.unread ? member.unread + 1 : 1;
                     unreadMessages++;
                     member.posts.push(msg);
-
                 }
             }
-            else if (member._id == msg.senderId && msg.recipientId.length > 12) { // chat post
+            else if (member._id == msg.senderId && msg.type == 'private') { // chat post
                 msg.from = 'other';
                 if (member.posts) {
                     if (member.posts[member.posts.length - 1].senderId != msg.senderId) {
@@ -176,7 +176,7 @@ export default class Room extends LightningElement {
                 member.posts.push(msg);
             }
         });
-        if(unreadMessages != this.unreadMessages){
+        if (unreadMessages != this.unreadMessages) {
             playNotification();
         }
         this.unreadMessages = unreadMessages;
@@ -185,13 +185,13 @@ export default class Room extends LightningElement {
 
     }
 
-    messagesRead(event){
+    messagesRead(event) {
         let memberId = event.detail;
         let members = this.members;
         let unreadMessages = this.unreadMessages
         members.forEach(member => {
-            if(member._id == memberId){
-                if(member.unread){
+            if (member._id == memberId) {
+                if (member.unread) {
                     unreadMessages = unreadMessages - member.unread;
                 }
                 member.unread = 0;

@@ -50,10 +50,6 @@
                 <div class="button button-warning" onclick={leaveRoom}>
                     Leave room
                 </div>
-                <div class="button button-neutral" onclick={enableSound}>
-                    Enable Sound
-                </div>
-
                 <template if:true={user}>
                     <br />
                     <div class="button button-neutral" onclick={logOut}>
@@ -92,7 +88,7 @@
                 <div class="border"></div>
                 <div class={chatClass}>
                     <template if:true={activeMember}>
-                        <c-chat user={user} socket={socket} member={activeMember} last-post-id={lastPostId}
+                        <c-chat user={user} socket={socket} member={activeMember} last-post-id={lastPostId} room-code={roomCode}
                             onmessagesread={messagesRead}></c-chat>
                     </template>
                 </div>

@@ -2,22 +2,38 @@
     <template if:true={member}>
         <div class="header">
             <h2>{member.userName}</h2>
+
+            <template if:true={isOrder}>
+                <div class="resolve-round button button-warning" onclick={resolveRound}>
+                    Resolve Round
+                </div>
+            </template>
         </div>
 
         <div class="container" data-last-post-id={lastPostId}>
             <div class="chat-window">
                 <template for:each={member.posts} for:item="post">
-                    <div key={post.postId} class="message">
-                        <template if:true={post.showSender}>
-                            <div class="sender-name">
-                                <b>{post.senderName}</b>
-                            </div>
-                        </template>
-                        <div class={post.from}>
-                            <div class="message-text" title={post.time}>
+                    <div key={post.postId}>
+                        <template if:true={post.system}>
+                            <div class="message system">
                                 {post.message}
                             </div>
-                        </div>
+                        </template>
+                        <template if:false={post.system}>
+                            <div class="message">
+                                <template if:true={post.showSender}>
+                                    <div class="sender-name">
+                                        <b>{post.senderName}</b>
+                                    </div>
+                                </template>
+                                <div class={post.from}>
+                                    <div class="message-text" title={post.time}>
+                                        {post.message}
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
                     </div>
                 </template>
             </div>
