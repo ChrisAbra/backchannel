@@ -1,1 +1,6 @@
 @import 'imports/style';
+
+.intro-text {
+	max-width:1000px;
+	margin:auto;
+}
